@@ -108,7 +108,7 @@ def makeInterpolation(image):
 
     rows = np.array(rows)
     newjSize = len(rows[0])
-
+    
     for i in range(newjSize):
 
         cashAllNumbers = []
@@ -125,7 +125,9 @@ def makeInterpolation(image):
             # добавляем в кеш
             for j in range(len(cash5Numbers)):
                 cashAllNumbers.append([cash5Numbers[j]])
-
+        print(np.shape(finalResult))
+        print(np.shape(cashAllNumbers))
+        exit()
         finalResult = np.append(finalResult, cashAllNumbers, axis=1)
 
     img = np.array(finalResult[:, newjSize:])
