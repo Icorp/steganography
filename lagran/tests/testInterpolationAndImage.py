@@ -119,10 +119,12 @@ def interpolation(array):
 
 
 def rotate_image(image, angle):
-  image_center = tuple(np.array(image.shape[1::-1]) / 2)
-  rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
-  result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
-  return result
+    image_center = tuple(np.array(image.shape[1::-1]) / 2)
+    rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+    result = cv2.warpAffine(
+        image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
+    return result
+
 
 image = cv2.imread("image.png")
 
@@ -132,7 +134,7 @@ gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 x2 = np.array(interpolation(gray))
 
 
-#rotation angle in degree
+# rotation angle in degree
 rotated = ndimage.rotate(x2, 90)
 
 # Save array as file ...
