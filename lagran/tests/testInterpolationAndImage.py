@@ -1,6 +1,9 @@
+import imp
+from re import X
 import numpy as np
 import math
-from PIL import Image
+import cv2
+from scipy import ndimage
 
 
 def split(a, n):
@@ -70,14 +73,13 @@ def interpolation(array):
         cashRow = []
         j = 0
         i += 1
-    
+
     # Переменные для увелечения по cтолбцу (10х5) -> 10х10
     columnRowLen, columnColumnLen = np.shape(rows)
     matrix = []  # финальная матрица
-    block = [] # место для хранения
-    i = 0 # для итерации 
-    j = 0 # для итерации
-    
+    block = []  # место для хранения
+    i = 0  # для итерации
+    j = 0  # для итерации
 
     # Увелечили из 5х5 в 10х5
     while columnColumnLen > i:
@@ -116,14 +118,22 @@ def interpolation(array):
     return np.array(matrix)
 
 
-x = np.array([[1, 2, 3, 4, 5],
-             [1, 2, 3, 4, 5],
-             [1, 2, 3, 4, 5],
-             [1, 2, 3, 4, 5],
-             [1, 2, 3, 4, 5]])
-x2 = np.array(interpolation(x))
+def rotate_image(image, angle):
+  image_center = tuple(np.array(image.shape[1::-1]) / 2)
+  rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+  result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
+  return result
 
+image = cv2.imread("image.png")
+
+# to grayScale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+x2 = np.array(interpolation(gray))
+
+
+#rotation angle in degree
+rotated = ndimage.rotate(x2, 90)
 
 # Save array as file ...
-im = Image.fromarray(x2)
-im.save("test_code.png")
+cv2.imwrite("test.png", rotated)
