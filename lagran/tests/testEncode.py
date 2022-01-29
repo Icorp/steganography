@@ -138,7 +138,7 @@ def processStego(coverImage, secretBits):
                 firstPlace = coverImage[i*3:i*3+3, j*3:j*3+3][0][1] + values[0]
             else:
                 break
-            
+
             if b[1] != '':
                 secondPlace = coverImage[i*3:i*3 +
                                          3, j*3:j*3+3][1][0] + values[1]
@@ -150,7 +150,7 @@ def processStego(coverImage, secretBits):
             else:
                 break
             # print(firstPlace, secondPlace, thirdPlace)
-            
+
             # Проверки на перезаполнение
             if firstPlace > 255:
                 # Пропускаем блок считая его недостаточным
@@ -179,13 +179,13 @@ def processStego(coverImage, secretBits):
                 break
                 thirdPlace = 255
                 print("\n")
-            
+
             print("\nДо внедрения:\n", block)
-            
+
             coverImage[i*3:i*3+3, j*3:j*3+3][0][1] = firstPlace
             coverImage[i*3:i*3+3, j*3:j*3+3][1][0] = secondPlace
             coverImage[i*3:i*3+3, j*3:j*3+3][1][1] = thirdPlace
-            
+
             print("\nПосле внедрения:\n", coverImage[i*3:i*3+3, j*3:j*3+3])
 
             print(secretBits[0:partCount])
@@ -212,10 +212,13 @@ def processStego(coverImage, secretBits):
     return coverImage
 
 
-secretMessage = 's'
-secretMessageInBit = "01110011"
+secretMessage = 'secret'
 
-image = cv2.imread("images/space_32x32.png")
+# 01110011 01100101 01100011 01110010 01100101 01110100
+secretMessageInBit = "011100110110010101100011011100100110010101110100"
+
+image = cv2.imread("test.png")
+print(image.shape)
 
 # to grayScale
 grayImage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

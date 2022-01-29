@@ -2,6 +2,7 @@ import numpy as np
 import math
 import cv2
 
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -14,6 +15,8 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 # Числа для битов
+
+
 def calculateD(numbers):
     d = []
     # Проверка на опорную если он больше всех
@@ -68,15 +71,21 @@ def getValues(b):
 
 def decode(blockCash):
     b = []
-    cash1 = math.floor((blockCash[0][0]+blockCash[2][0])/2)
-    cash2 = math.floor(blockCash[0][0]+blockCash[0][2]/2)
+    cash1 = math.floor((blockCash[0][0]+blockCash[0][2])/2)
+    cash2 = math.floor((blockCash[0][0]+blockCash[2][0])/2)
+    
+    
+    cash31 = math.floor((blockCash[0][2]+blockCash[2][0])/2)
     cash3 = math.floor(
-        ((blockCash[0][0]*2 + (blockCash[0][2]+blockCash[2][0])/2))/3)
+        (math.floor(blockCash[0][0]*2 +cash31))/3)
 
     b.append(blockCash[0][1]-cash1)
     b.append(blockCash[1][0]-cash2)
     b.append(blockCash[1][1]-cash3)
-    print(b)
+    print("decode:")
+    print(blockCash[0][1], "— (", blockCash[0][0],"+", blockCash[0][2], ")/2 =", b[0])
+    print(blockCash[1][0], "— (", blockCash[0][0],"+", blockCash[2][0], ")/2 =", b[1])
+    print(blockCash[1][1], "— (", blockCash[0][0], "* 2", "+(",blockCash[0][2], "+", blockCash[2][0], ")/2)/3 =", b[2])
     return b
 
 
@@ -111,7 +120,6 @@ def processStego(coverImage, secretBits):
             if c != 3:
                 continue
 
-            print("\nПроцесс: ", i, j)
             # print("Block: \n")
             # print(block, "\n")
 
@@ -124,7 +132,6 @@ def processStego(coverImage, secretBits):
 
             # Вычитываем пиксели
             d = calculateD(squareInline)
-            print("\td значения - ", d)
 
             zeroValue = False  # переменная для статуса нулевых значении
 
@@ -144,7 +151,6 @@ def processStego(coverImage, secretBits):
 
             # Вычитываем по сколько бит можно отрезать
             n = calculateN(d)
-            print("\tn значения - ",n)
 
             partCount = 0
             # check on 0,0,0
@@ -159,17 +165,15 @@ def processStego(coverImage, secretBits):
 
             # Делим биты на части
             b = calculateB(n, secretBits[0:partCount])
-            print("\tb значения - ",b)
 
             # Получаем числа которые нужно добавить в блок
             values = getValues(b)
-            print("\tvalues: ", values)
 
             if b[0] != '':
                 firstPlace = coverImage[i*3:i*3+3, j*3:j*3+3][0][1] + values[0]
             else:
                 break
-            
+
             if b[1] != '':
                 secondPlace = coverImage[i*3:i*3 +
                                          3, j*3:j*3+3][1][0] + values[1]
@@ -181,7 +185,14 @@ def processStego(coverImage, secretBits):
             else:
                 break
             # print(firstPlace, secondPlace, thirdPlace)
-            
+
+            print("\nПроцесс: ", i, j)
+
+            print("\td значения - ", d)
+            print("\tn значения - ", n)
+            print("\tb значения - ", b)
+            print("\tvalues: ", values)
+
             # Проверки на перезаполнение
             if firstPlace > 255:
                 # Пропускаем блок считая его недостаточным
@@ -210,17 +221,15 @@ def processStego(coverImage, secretBits):
                 break
                 thirdPlace = 255
                 print("\n")
-            
+
             print("\nДо внедрения:\n", block)
-            
+
             coverImage[i*3:i*3+3, j*3:j*3+3][0][1] = firstPlace
             coverImage[i*3:i*3+3, j*3:j*3+3][1][0] = secondPlace
             coverImage[i*3:i*3+3, j*3:j*3+3][1][1] = thirdPlace
-            
+
             print("\nПосле внедрения:\n", coverImage[i*3:i*3+3, j*3:j*3+3])
 
-            print("Секретные биты до внедрения:",secretBits[0:partCount])
-            
             # Вычитываем биты которые были добавлены
             for k in range(len(b)):
 
@@ -232,8 +241,7 @@ def processStego(coverImage, secretBits):
                     secretBits = secretBits[0: start:] + secretBits[stop + 1::]
                 elif len(secretBits) == 0:
                     secretMessageFinishStatus = True
-            
-            print("Осталось внедрить:",secretBits[0:partCount])
+
     if secretMessageFinishStatus != True:
         print("Размер битов секретного сообщения", secretBits)
         print("Не достаточно место для встраивания секретного сообщения, биты:", secretBits)
@@ -297,12 +305,12 @@ def processDecode(stegoImage):
 
             if zeroValue == True:
                 continue
-                
+
             # Делим биты на части
             b = decode(block)
             print("\nПроцесс: ", i, j)
-            print("Блок который восстанавливаем \n",block)
-            print(b)
+            print("Блок который восстанавливаем \n", block)
+            print("B:", b)
             exit()
             # Получаем числа возможные секретного сообщения
             values = getValues(b)
@@ -375,10 +383,11 @@ def processDecode(stegoImage):
     return coverImage
 
 
-secretMessage = 's'
-secretMessageInBit = "01110011"
+secretMessage = 'secret'
+# 0111 0 011 01100101 01100011 01110010 01100101 01110100
+secretMessageInBit = "011100110110010101100011011100100110010101110100"
 
-image = cv2.imread("images/space_32x32.png")
+image = cv2.imread("test.png")
 
 # to grayScale
 grayImage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

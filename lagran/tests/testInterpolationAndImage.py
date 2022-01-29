@@ -129,7 +129,7 @@ def interpolation(array):
     return rotated
 
 
-image = cv2.imread("images/discord.png")
+image = cv2.imread("images/space.png")
 
 # to grayScale
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
