@@ -1,5 +1,4 @@
 import numpy as np
-import cv2
 import math
 from numpy.core.defchararray import array
 
@@ -32,58 +31,111 @@ def split(a, n):
     return lol(a, n)
 
 
-def makeInterpolation(array):
+def interpolation(array):
+    # Переменные для увелечения по cтолбцу (5х5) -> 10х5
+    rows = []  # для конечного массива
+    block = []  # Место для хранения блоков 3х
+    columnRowLen, columnColumnLen = np.shape(array)
+    i = 0  # для итерации
+    j = 0  # для итерации
+    
+    # Увелечили из 5х5 в 10х5
+    while columnColumnLen > i:
+        cashRow = []
 
-    iSize = array[0].size
+        while columnRowLen > j:
+            block.append(array[i][j])
 
-    rows = []
-    if iSize % 3 == 0:
-        for i in range(iSize):
-            cashAllNumbers = []
-            slices = split(array[i], 3)
+            print("i = ", i, "j = ", j)
+            print("block append", block)
 
-            for k in range(len(slices)):
+            # calculate lagrang and clean block
+            if len(block) == 5:
+                print("Block:", block)
+                print("\n")
+                firstPart = [block[0], block[1], block[2]]
+                secondPart = [block[2], block[3], block[4]]
 
-                if len(slices[k]) != 3:
-                    continue
+                # add to row result
+                for k, value in enumerate(lagrang(firstPart)):
+                    cashRow.append(value)
 
-                # Вычисление Лагранджа из 3 чисел в 5 чисел
-                cash5Numbers = lagrang(slices[k])
+                # add to row result
+                for k, value in enumerate(lagrang(secondPart)):
+                    cashRow.append(value)
 
-                # добавляем в кеш
-                for j in range(len(cash5Numbers)):
-                    cashAllNumbers.append(cash5Numbers[j])
+                block = []
 
-            rows.append(cashAllNumbers)
+            # clean read array
+            j = j + 1
 
-    finalResult = np.empty(shape=(len(rows[0]), len(rows[0])))
+        rows.append(cashRow)
+        cashRow = []
+        j = 0
+        i += 1
 
-    rows = np.array(rows)
-    newjSize = len(rows[0])
+    # Переменные для увелечения по cтолбцу (10х5) -> 10х10
+    columnRowLen, columnColumnLen = np.shape(rows)
+    matrix = []  # финальная матрица
+    block = []  # место для хранения
+    i = 0  # для итерации
+    j = 0  # для итерации
 
-    for i in range(newjSize):
+    # Увелечили из 5х5 в 10х5
+    while columnColumnLen > i:
+        cashRow = []
 
-        cashAllNumbers = []
-        slices = split(rows[:, i], 3)
+        columnValues = [x[i] for x in rows]  # это числа столбцов
+        while len(columnValues) > j:
+            block.append(rows[j][i])
 
-        for k in range(len(slices)):
+            # print("i = ", i, "j = ", j)
+            # print("block append", block)
 
-            if len(slices[k]) != 3:
-                continue
+            # calculate lagrang and clean block
+            if len(block) == 5:
+                # print("Block:", block)
+                # print("\n")
+                firstPart = [block[0], block[1], block[2]]
+                secondPart = [block[2], block[3], block[4]]
 
-            # Вычисление Лагранджа из 3 чисел в 5 чисел
-            cash5Numbers = lagrang(slices[k])
+                # add to final result
+                for k, value in enumerate(lagrang(firstPart)):
+                    cashRow.append(value)
 
-            # добавляем в кеш
-            for j in range(len(cash5Numbers)):
-                cashAllNumbers.append([cash5Numbers[j]])
+                # add to final result
+                for k, value in enumerate(lagrang(secondPart)):
+                    cashRow.append(value)
 
-        finalResult = np.append(finalResult, cashAllNumbers, axis=1)
+                block = []
 
-    img = np.array(finalResult[:, newjSize:])
-    return img
+            # clean read array
+            j = j + 1
+
+        matrix.append(cashRow)
+        cashRow = []
+        j = 0
+        i += 1
+    return np.array(matrix)
 
 
-data = np.array([[1, 2], [3, 4]])
-result = makeInterpolation(data)
-print(result)
+data = np.array([
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]])
+
+result = interpolation(data)
+print(np.shape(data))
+print(np.shape(result))

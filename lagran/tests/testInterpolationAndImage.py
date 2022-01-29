@@ -30,6 +30,12 @@ def lagrang(array):
             result[xk[k]] = 0
     return result
 
+def rotate_image(image, angle):
+    image_center = tuple(np.array(image.shape[1::-1]) / 2)
+    rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+    result = cv2.warpAffine(
+        image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
+    return result
 
 def interpolation(array):
     # Переменные для увелечения по cтолбцу (5х5) -> 10х5
@@ -50,19 +56,21 @@ def interpolation(array):
             # print("block append", block)
 
             # calculate lagrang and clean block
-            if len(block) == 3:
+            if len(block) == 5:
                 # print("Block:", block)
                 # print("\n")
-
-                # add to final result
-                for k, value in enumerate(lagrang(block)):
+                firstPart = [block[0],block[1],block[2]]
+                secondPart = [block[2],block[3],block[4]]
+                
+                # add to row result
+                for k, value in enumerate(lagrang(firstPart)):
                     cashRow.append(value)
 
+                # add to row result
+                for k, value in enumerate(lagrang(secondPart)):
+                    cashRow.append(value)
+                
                 block = []
-
-                # Проверка на последнюю итерацию
-                if len(array[0])-1 != j:
-                    j = j-1
 
             # clean read array
             j = j + 1
@@ -91,19 +99,21 @@ def interpolation(array):
             # print("block append", block)
 
             # calculate lagrang and clean block
-            if len(block) == 3:
+            if len(block) == 5:
                 # print("Block:", block)
                 # print("\n")
+                firstPart = [block[0],block[1],block[2]]
+                secondPart = [block[2],block[3],block[4]]
 
                 # add to final result
-                for k, value in enumerate(lagrang(block)):
+                for k, value in enumerate(lagrang(firstPart)):
+                    cashRow.append(value)
+
+                # add to final result
+                for k, value in enumerate(lagrang(secondPart)):
                     cashRow.append(value)
 
                 block = []
-
-                # Проверка на последнюю итерацию
-                if len(array[0])-1 != j:
-                    j = j-1
 
             # clean read array
             j = j + 1
@@ -113,27 +123,19 @@ def interpolation(array):
         j = 0
         i += 1
 
-    return np.array(matrix)
+    # rotation angle in degree
+    rotated = ndimage.rotate(np.array(matrix), 270)
+    
+    return rotated
 
 
-def rotate_image(image, angle):
-    image_center = tuple(np.array(image.shape[1::-1]) / 2)
-    rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
-    result = cv2.warpAffine(
-        image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
-    return result
-
-
-image = cv2.imread("image.png")
+image = cv2.imread("images/discord.png")
 
 # to grayScale
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-x2 = np.array(interpolation(gray))
-
-
-# rotation angle in degree
-rotated = ndimage.rotate(x2, 90)
+x2 = np.array(interpolation(np.array(gray)))
+print(np.shape(gray))
+print(np.shape(x2))
 
 # Save array as file ...
-cv2.imwrite("test.png", rotated)
+cv2.imwrite("test.png", x2)
