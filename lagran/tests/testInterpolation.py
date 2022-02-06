@@ -1,6 +1,7 @@
 import numpy as np
 import math
 from numpy.core.defchararray import array
+from scipy import ndimage
 
 
 def lagrang(c):
@@ -38,7 +39,7 @@ def interpolation(array):
     columnRowLen, columnColumnLen = np.shape(array)
     i = 0  # для итерации
     j = 0  # для итерации
-    
+
     # Увелечили из 5х5 в 10х5
     while columnColumnLen > i:
         cashRow = []
@@ -46,13 +47,12 @@ def interpolation(array):
         while columnRowLen > j:
             block.append(array[i][j])
 
-            print("i = ", i, "j = ", j)
-            print("block append", block)
+            # print("i = ", i, "j = ", j)
+            # print("block append", block)
 
             # calculate lagrang and clean block
             if len(block) == 5:
-                print("Block:", block)
-                print("\n")
+                
                 firstPart = [block[0], block[1], block[2]]
                 secondPart = [block[2], block[3], block[4]]
 
@@ -63,7 +63,7 @@ def interpolation(array):
                 # add to row result
                 for k, value in enumerate(lagrang(secondPart)):
                     cashRow.append(value)
-
+                
                 block = []
 
             # clean read array
@@ -80,7 +80,7 @@ def interpolation(array):
     block = []  # место для хранения
     i = 0  # для итерации
     j = 0  # для итерации
-
+    print(rows)
     # Увелечили из 5х5 в 10х5
     while columnColumnLen > i:
         cashRow = []
@@ -116,7 +116,11 @@ def interpolation(array):
         cashRow = []
         j = 0
         i += 1
-    return np.array(matrix)
+
+    # rotation angle in degree
+    rotated = ndimage.rotate(np.array(matrix), 270)
+    im =  np.fliplr(rotated)
+    return im
 
 
 data = np.array([
@@ -137,5 +141,5 @@ data = np.array([
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]])
 
 result = interpolation(data)
-print(np.shape(data))
 print(np.shape(result))
+

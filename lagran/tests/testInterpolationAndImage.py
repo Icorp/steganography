@@ -2,7 +2,7 @@ import numpy as np
 import math
 import cv2
 from scipy import ndimage
-
+from PIL import Image, ImageOps
 
 def split(a, n):
     def lol(lst, sz): return [lst[i:i+sz] for i in range(0, len(lst), sz)]
@@ -30,12 +30,14 @@ def lagrang(array):
             result[xk[k]] = 0
     return result
 
+
 def rotate_image(image, angle):
     image_center = tuple(np.array(image.shape[1::-1]) / 2)
     rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
     result = cv2.warpAffine(
         image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
     return result
+
 
 def interpolation(array):
     # Переменные для увелечения по cтолбцу (5х5) -> 10х5
@@ -57,11 +59,10 @@ def interpolation(array):
 
             # calculate lagrang and clean block
             if len(block) == 5:
-                # print("Block:", block)
-                # print("\n")
-                firstPart = [block[0],block[1],block[2]]
-                secondPart = [block[2],block[3],block[4]]
-                
+
+                firstPart = [block[0], block[1], block[2]]
+                secondPart = [block[2], block[3], block[4]]
+
                 # add to row result
                 for k, value in enumerate(lagrang(firstPart)):
                     cashRow.append(value)
@@ -102,8 +103,8 @@ def interpolation(array):
             if len(block) == 5:
                 # print("Block:", block)
                 # print("\n")
-                firstPart = [block[0],block[1],block[2]]
-                secondPart = [block[2],block[3],block[4]]
+                firstPart = [block[0], block[1], block[2]]
+                secondPart = [block[2], block[3], block[4]]
 
                 # add to final result
                 for k, value in enumerate(lagrang(firstPart)):
@@ -125,15 +126,15 @@ def interpolation(array):
 
     # rotation angle in degree
     rotated = ndimage.rotate(np.array(matrix), 270)
-    
-    return rotated
+    im =  np.fliplr(rotated)
+    return im
 
 
-image = cv2.imread("images/space.png")
+image = cv2.imread("images/test_man.png")
 
 # to grayScale
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-x2 = np.array(interpolation(np.array(gray)))
+x2 = interpolation(np.array(gray))
 print(np.shape(gray))
 print(np.shape(x2))
 
