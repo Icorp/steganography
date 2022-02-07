@@ -504,10 +504,11 @@ def getBaseImage(array):
     exit("exit")
 
 
-def processDecode(stegoImage, baseImage):
+def processDecode(stegoImage):
     lenI = math.ceil(len(stegoImage)/5)
     lenJ = math.ceil(len(stegoImage[0])/5)
 
+    # Результат восстановления
     secretBits = ""
 
     for i in range(lenI):
@@ -516,6 +517,7 @@ def processDecode(stegoImage, baseImage):
             # Для вывода в консоль
             blockForLog = cp.copy(stegoImage[i*5:i*5+5, j*5:j*5+5])
 
+            # Block 5x5
             stegoBlock = stegoImage[i*5:i*5+5, j*5:j*5+5]
             block = stegoBlock[0:3, 0:3]
 
@@ -544,13 +546,14 @@ def processDecode(stegoImage, baseImage):
                 if d[k] <= 0:
                     zeroValue = True
 
-            # Пропускаем блок 2х2 и переходим к следующему
+            # Пропускаем блок 5x5 и переходим к следующему
             if zeroValue == True:
                 # print(bcolors.WARNING + "Warning: Один из d-значении равен нулю, пропускаю данный блок" + bcolors.ENDC)
                 # print("\n")
                 # print(block)
                 # print("\n")
                 continue
+
             # Вычитываем по сколько бит можно отрезать
             n = calculateN(d)
 
@@ -607,18 +610,22 @@ def processDecode(stegoImage, baseImage):
             # Вычитываем по сколько бит можно отрезать
             n = calculateN(d)
 
+            # Добавляем 0 дополнительные биты
             if values[0] == 0 and n[0] > 1:
                 for k in range(n[0]-1):
                     bits[0] += "0"
 
+            # Добавляем 0 дополнительные биты
             if values[1] == 0 and n[1] > 1:
                 for k in range(n[1]-1):
                     bits[1] += "0"
-
+            
+            # Добавляем 0 дополнительные биты
             if values[2] == 0 and n[2] > 1:
                 for k in range(n[2]-1):
                     bits[2] += "0"
 
+            # Добавляем 0 дополнительные биты перед еденицой
             if bits[0][0] == "1" and len(bits[0]) < n[0]:
                 cash = "0"
 
@@ -627,6 +634,7 @@ def processDecode(stegoImage, baseImage):
 
                 bits[0] = cash
 
+            # Добавляем 0 дополнительные биты перед еденицой
             if bits[1][0] == "1" and len(bits[1]) < n[1]:
                 cash = "0"
 
@@ -635,6 +643,7 @@ def processDecode(stegoImage, baseImage):
 
                 bits[1] = cash
 
+            # Добавляем 0 дополнительные биты перед еденицой
             if bits[2][0] == "1" and len(bits[2]) < n[2]:
                 cash = "0"
 
@@ -686,8 +695,10 @@ def processDecode(stegoImage, baseImage):
         exit()
 
     print("Декодирование прошла успешна")
+    
+    # todo: пофиксить
     print("Секрет: ", text_from_bits(secretBits, encoding='utf-8'))
-    exit()
+    
     return secretBits
 
 
@@ -703,12 +714,13 @@ image = cv2.imread("images/space_500x500.png")
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 grayImage = np.array(gray)
 
+# Производим интерполяцию
 x2 = np.array(interpolation(gray))
 
-# Set Secret data to image
+# Производим внедрение секретных  данных в изображение
 stegoImage = processStego(x2, secretMessageInBit)
 
-# Get Back x/2 image
-baseImage = getBaseImage(stegoImage)
+# Сохраняем стегоизображение как файл
+cv2.imwrite("stego.png", stegoImage)
 
-result = processDecode(stegoImage, baseImage)
+result = processDecode(stegoImage)
