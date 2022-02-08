@@ -22,4 +22,4 @@ def lagrang(c):
             result[xk[k]] = 255+math.floor(ck)
     return result
 
-print(lagrang([17, 22, 27]))
+print(lagrang([30, 34, 44]))

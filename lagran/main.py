@@ -220,7 +220,17 @@ def decode(blockCash):
 def processStego(coverImage, secretBits):
     lenI = math.ceil(len(coverImage)/5)
     lenJ = math.ceil(len(coverImage[0])/5)
-    print(secretBits)
+    sizeSecret = format(len(secretBits), '08b')    # длина секретного сообщения
+    copyOfSecretBits = cp.copy(secretBits)
+    secretBits = sizeSecret+secretBits
+
+    print("Начало внедрения")
+    print("Длина секретного сообщения", len(secretBits))
+    print("Длина секретного сообщения в битах", sizeSecret)
+    print("Биты", copyOfSecretBits)
+    print("Биты с размером секретного сообщения", secretBits)
+    #          011100110110010101100011011100100110010101110100
+    # 00110000 011100110110010101100011011100100110010101110100
 
     # Статус для остановки процесса внедрения
     secretMessageFinishStatus = False
@@ -384,6 +394,8 @@ def processStego(coverImage, secretBits):
     print(f"{bcolors.WARNING}Процесс внедрения прошел успешно ...\n{bcolors.ENDC}")
     return coverImage
 
+# Не нужная хрень
+
 
 def getBase(array):
 
@@ -440,6 +452,8 @@ def getBase(array):
     highBlock = np.delete(highBlock, 1, 0)
     block = np.concatenate((highBlock, lowBlock), axis=0)
     return np.array(block)
+
+# Не нужная хрень
 
 
 def getBaseImage(array):
@@ -510,10 +524,27 @@ def processDecode(stegoImage):
 
     # Результат восстановления
     secretBits = ""
+    sizeToStop = 0
+    valueToStopDecode = False
 
     for i in range(lenI):
+        
+        # Выйти из цикла  если нашли конец сообщения
+        if valueToStopDecode == True and len(secretBits) >= sizeToStop:
+                break
+        
         for j in range(lenJ):
 
+            # Вычислить размер секретного сообщения
+            if len(secretBits) >= 8 and valueToStopDecode == False:
+                # 00110000
+                sizeToStop = int(secretBits[0:8], 2)+8
+                valueToStopDecode = True
+            
+            # Выйти из цикла  если нашли конец сообщения
+            if valueToStopDecode == True and len(secretBits) >= sizeToStop:
+                break
+            
             # Для вывода в консоль
             blockForLog = cp.copy(stegoImage[i*5:i*5+5, j*5:j*5+5])
 
@@ -570,13 +601,9 @@ def processDecode(stegoImage):
                 continue
 
             firstCode = [stegoBlock[0][0], stegoBlock[0][2], stegoBlock[0][4]]
-            secondCode = [stegoBlock[0][0], stegoBlock[2][0], stegoBlock[4][0]]
-            thirdCode = [stegoBlock[0][1], stegoBlock[2][1], stegoBlock[4][1]]
 
             # Вычисляем лагранж  между битами
             firstCodeLagrang = lagrang(firstCode)
-            secondCodeLagrang = lagrang(secondCode)
-            thirdCodeLagrang = lagrang(thirdCode)
 
             values = [0, 0, 0]
 
@@ -585,6 +612,12 @@ def processDecode(stegoImage):
                 values[0] = stegoBlock[0][1]-firstCodeLagrang[1]
                 stegoBlock[0][1] = firstCodeLagrang[1]
 
+            secondCode = [stegoBlock[0][0], stegoBlock[2][0], stegoBlock[4][0]]
+            thirdCode = [stegoBlock[0][1], stegoBlock[2][1], stegoBlock[4][1]]
+
+            secondCodeLagrang = lagrang(secondCode)
+            thirdCodeLagrang = lagrang(thirdCode)
+
             if stegoBlock[1][0] != secondCodeLagrang[1]:
                 values[1] = stegoBlock[1][0]-secondCodeLagrang[1]
                 stegoBlock[1][0] = secondCodeLagrang[1]
@@ -592,6 +625,18 @@ def processDecode(stegoImage):
             if stegoBlock[1][1] != thirdCodeLagrang[1]:
                 values[2] = stegoBlock[1][1]-thirdCodeLagrang[1]
                 stegoBlock[1][1] = thirdCodeLagrang[1]
+
+            if blockForLog[1][1]-thirdCodeLagrang[1] < 0:
+
+                thirdCode = [blockForLog[1][0],
+                             blockForLog[1][2], blockForLog[1][4]]
+                thirdCodeLagrang = lagrang(thirdCode)
+
+                print("\nTry another way, horizontal")
+                print("thirdRow: ", thirdCodeLagrang)
+                print(blockForLog[1][1], "!=", thirdCodeLagrang[1],
+                      "Output = ", blockForLog[1][1]-thirdCodeLagrang[1])
+                values[2] = blockForLog[1][1]-thirdCodeLagrang[1]
 
             bits = [format(values[0], 'b'), format(
                 values[1], 'b'), format(values[2], 'b')]
@@ -619,7 +664,7 @@ def processDecode(stegoImage):
             if values[1] == 0 and n[1] > 1:
                 for k in range(n[1]-1):
                     bits[1] += "0"
-            
+
             # Добавляем 0 дополнительные биты
             if values[2] == 0 and n[2] > 1:
                 for k in range(n[2]-1):
@@ -671,18 +716,6 @@ def processDecode(stegoImage):
             print("\nn - значения", n)
             print("bits: ", bits)
 
-            if blockForLog[1][1]-thirdCodeLagrang[1] < 0:
-
-                thirdCode = [blockForLog[1][0],
-                             blockForLog[1][2], blockForLog[1][4]]
-                thirdCodeLagrang = lagrang(thirdCode)
-
-                print("\nTry another way, horizontal")
-                print("thirdRow: ", thirdCodeLagrang)
-                print(blockForLog[1][1], "!=", thirdCodeLagrang[1],
-                      "Output = ", blockForLog[1][1]-thirdCodeLagrang[1])
-                values[2] = blockForLog[1][1]-thirdCodeLagrang[1]
-
             for k in range(len(values)):
                 secretBits += bits[k]
 
@@ -695,16 +728,16 @@ def processDecode(stegoImage):
         exit()
 
     print("Декодирование прошла успешна")
-    
+
     # todo: пофиксить
     print("Секрет: ", text_from_bits(secretBits, encoding='utf-8'))
-    
+    print("Секрет: ", secretBits[8:sizeToStop])
     return secretBits
 
 
 secretMessage = 'secret'
-# 011100110110010101100011011100100110010101110100
-# 011100110110010101100011011100
+#         011100110110010101100011011100100110010101110100
+#         011100110110010101100011011100100110010101110100
 
 secretMessageInBit = "011100110110010101100011011100100110010101110100"
 
