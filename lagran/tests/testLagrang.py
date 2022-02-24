@@ -1,4 +1,6 @@
 import math
+import random
+
 
 def lagrang(c):
     xk = [1, 3]

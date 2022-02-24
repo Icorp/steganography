@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import numpy as np
 import math
 import cv2
@@ -214,7 +215,6 @@ def decode(blockCash):
     print(blockCash[1][1], "— (", blockCash[0][0], "* 2", "+(",
           blockCash[0][2], "+", blockCash[2][0], ")/2)/3 =", b[2])
     return b
-
 
 def processStego(coverImage, secretBits):
     lenI = math.ceil(len(coverImage)/5)
